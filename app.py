@@ -1,14 +1,7 @@
 import os
 from flask import Flask, render_template, Response, jsonify, request
-import gunicorn
 from camera import *
 from PIL import Image
-import numpy as np
-
-# Suppress TensorFlow warnings
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-# Force CPU mode if GPU is not available
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 app = Flask(__name__)
 
@@ -18,10 +11,9 @@ df1 = df1.head(15)
 
 @app.route("/")
 def index():
-    print(df1.to_json(orient="records"))
     return render_template("index.html", headings=headings, data=df1)
 
-@app.route("/app")
+@app.route('/app')
 def app_page():
     return render_template("app.html")
 
@@ -43,16 +35,12 @@ def live_emotion():
 
 @app.route("/t")
 def gen_table():
-    print(df1)
     return df1.to_json(orient="records")
 
 @app.route("/get_recommendations")
 def get_recommendations():
     [emotion, df1] = max_emotion_reccomendation()
-    return jsonify({
-        "detected_emotion": emotion,
-        "music_data": df1.to_dict(orient="records") if df1 is not None else None
-    })
+    return jsonify({"detected_emotion": emotion, "music_data": df1.to_dict(orient="records") if df1 is not None else None})
 
 @app.route('/image', methods=['POST'])
 def upload_file():
@@ -71,5 +59,5 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))  # Default to 10000 if PORT is missing
+    port = int(os.environ.get("PORT", 5000))  # Set to default 5000 for Render
     app.run(host="0.0.0.0", port=port)
